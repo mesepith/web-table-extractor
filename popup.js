@@ -1,77 +1,106 @@
+const initTable = function (list) {
+  const tableDiv = document.getElementById('table-container');
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const tableContainer = document.getElementById('table-container');
-  const exportAllButton = document.getElementById('exportAll');
+  list.forEach(item => {
+      const groupContainer = document.createElement('div');
+      groupContainer.setAttribute('class', 'table-group');
 
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-    chrome.tabs.sendMessage(tab.id, { action: "getTableData" }, (response) => {
-      const { tableData } = response;
-      tableData.forEach((table) => {
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'table-group';
-        const tableElement = document.createElement('table');
-        tableElement.id = table.id;
+      const tableElement = document.createElement('table');
+      tableElement.setAttribute('id', item.tableId);
 
-        table.rows.forEach((row, rowIndex) => {
-          const rowElement = document.createElement('tr');
-          row.forEach((cell) => {
-            const cellElement = document.createElement('td');
-            cellElement.innerText = cell;
-            rowElement.appendChild(cellElement);
+      const trDataArray = item.t_data;
+
+      trDataArray.forEach(rowData => {
+          const trElement = document.createElement('tr');
+
+          rowData.forEach(cellData => {
+              const tdElement = document.createElement('td');
+              tdElement.innerText = cellData;
+              trElement.appendChild(tdElement);
           });
-          if (rowIndex > 0) rowElement.style.display = 'none';
-          tableElement.appendChild(rowElement);
-        });
 
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'button-container';
-
-        const toggleButton = document.createElement('button');
-        toggleButton.innerText = 'Display All';
-        toggleButton.addEventListener('click', () => {
-          const rows = Array.from(tableElement.rows);
-          const isHidden = rows[1].style.display === 'none';
-          rows.slice(1).forEach(row => row.style.display = isHidden ? 'table-row' : 'none');
-          toggleButton.innerText = isHidden ? 'Hide All' : 'Display All';
-        });
-
-        const exportButton = document.createElement('button');
-        exportButton.innerText = 'Export .xlsx';
-        exportButton.addEventListener('click', () => {
-          const tableHtml = tableElement.outerHTML;
-          chrome.runtime.sendMessage({ action: "exportTable", data: tableHtml }, (response) => {
-            const a = document.createElement('a');
-            a.href = response.downloadUrl;
-            a.download = 'table.xlsx';
-            a.click();
-          });
-        });
-
-        buttonContainer.appendChild(toggleButton);
-        buttonContainer.appendChild(exportButton);
-        groupDiv.appendChild(tableElement);
-        groupDiv.appendChild(buttonContainer);
-        tableContainer.appendChild(groupDiv);
+          tableElement.appendChild(trElement);
       });
-    });
+
+      const explanationElement = document.createElement('p');
+      explanationElement.innerText = ` ${trDataArray.length} rows and ${trDataArray[0].length} columns`;
+
+      const buttonContainer = document.createElement('div');
+      buttonContainer.setAttribute('class', 'button-container');
+
+      const buttonElement = document.createElement('button');
+      buttonElement.innerText = 'Display All';
+      let allRowsVisible = false; // Flag to track visibility state
+      buttonElement.onclick = function () {
+          allRowsVisible = !allRowsVisible;
+          buttonElement.innerText = allRowsVisible ? 'Hide All' : 'Display All';
+
+          for (let i = 1; i < trDataArray.length; i++) {
+              const rowElement = tableElement.getElementsByTagName('tr')[i];
+              rowElement.style.display = allRowsVisible ? 'table-row' : 'none';
+          }
+      };
+
+      const exportButtonElement = document.createElement('button');
+      exportButtonElement.innerText = 'Export .xlsx';
+      exportButtonElement.onclick = function () {
+          exportExcelTable(item.tableId, item.t_data);
+      };
+
+      buttonContainer.appendChild(buttonElement);
+      buttonContainer.appendChild(exportButtonElement);
+
+      groupContainer.appendChild(explanationElement);
+      groupContainer.appendChild(tableElement);
+      groupContainer.appendChild(buttonContainer);
+
+      tableDiv.appendChild(groupContainer);
   });
+};
 
-  exportAllButton.addEventListener('click', () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-      chrome.tabs.sendMessage(tab.id, { action: "getTableData" }, (response) => {
-        const { tableData } = response;
-        let allTablesHtml = tableData.map(table => {
-          const rowsHtml = table.rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('');
-          return `<table>${rowsHtml}</table>`;
-        }).join('');
+// Send message to background script to export table data
+function exportExcelTable(id, t_data) {
+  chrome.runtime.sendMessage({ greeting: "runDemo", id: JSON.stringify(id), t_data: JSON.stringify(t_data) },
+      function (response) {
+          let binaryString = atob(response.farewell);
+          let arr = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+              arr[i] = binaryString.charCodeAt(i);
+          }
 
-        chrome.runtime.sendMessage({ action: "exportTable", data: allTablesHtml }, (response) => {
+          const blob = new Blob([arr], {
+              type: 'application/vnd.ms-excel',
+          });
+          const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
-          a.href = response.downloadUrl;
-          a.download = 'tables.xlsx';
+          a.download = 'table_data.xlsx';
+          a.href = url;
           a.click();
-        });
       });
-    });
-  });
+}
+
+// DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', async function () {
+  const message_hint = document.getElementById("message");
+  try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const response = await chrome.tabs.sendMessage(tab.id, { greeting: "helloKan" });
+      if (response.content == "") {
+          message_hint.innerText = "No <table> found on this page.";
+      } else {
+          try {
+              var tt = JSON.parse(response.content);
+              if (tt.length >= 1) {
+                  message_hint.style.display = "none";
+                  initTable(tt);
+              } else {
+                  message_hint.innerText = "No <table> found on this page.";
+              }
+          } catch {
+              message_hint.innerText = "Error parsing data.";
+          }
+      }
+  } catch {
+      message_hint.innerText = "No <table> found on this page.";
+  }
 });
