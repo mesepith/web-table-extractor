@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const message_hint = document.getElementById("message");
     try {
-        const [tab] = await chrome.tabs.query({ active: true });
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         const response = await chrome.tabs.sendMessage(tab.id, { greeting: "helloKan" });
+        console.log("Response from content script:", response); // Add logging for debugging
         if (response.content === "") {
             message_hint.innerText = "No <table> found on this page.";
         } else {
@@ -14,11 +15,13 @@ document.addEventListener('DOMContentLoaded', async function () {
                 } else {
                     message_hint.innerText = "No <table> found on this page.";
                 }
-            } catch {
+            } catch (error) {
+                console.error("Error parsing data:", error); // Add logging for debugging
                 message_hint.innerText = "Error parsing data.";
             }
         }
-    } catch {
+    } catch (error) {
+        console.error("Error querying or sending message to tab:", error); // Add logging for debugging
         message_hint.innerText = "No <table> found on this page.";
     }
 
@@ -78,10 +81,15 @@ document.addEventListener('DOMContentLoaded', async function () {
             exportButtonElement.innerText = 'Export .xlsx';
             exportButtonElement.onclick = function () {
                 chrome.runtime.sendMessage({ greeting: "runDemo", id: JSON.stringify(item.tableId), t_data: JSON.stringify(item.t_data) }, function (response) {
-                    const a = document.createElement('a');
-                    a.href = response.farewell;
-                    a.download = `table_${item.tableId}.xlsx`;
-                    a.click();
+                    console.log("Response from background script:", response); // Add logging for debugging
+                    if (response && response.farewell) {
+                        const a = document.createElement('a');
+                        a.href = response.farewell;
+                        a.download = `table_${item.tableId}.xlsx`;
+                        a.click();
+                    } else {
+                        console.error('Export failed or response undefined');
+                    }
                 });
             };
 
