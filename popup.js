@@ -80,17 +80,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const exportButtonElement = document.createElement('button');
             exportButtonElement.innerText = 'Export .xlsx';
             exportButtonElement.onclick = function () {
-                chrome.runtime.sendMessage({ greeting: "runDemo", id: JSON.stringify(item.tableId), t_data: JSON.stringify(item.t_data) }, function (response) {
-                    console.log("Response from background script:", response); // Add logging for debugging
-                    if (response && response.farewell) {
-                        const a = document.createElement('a');
-                        a.href = response.farewell;
-                        a.download = `table_${item.tableId}.xlsx`;
-                        a.click();
-                    } else {
-                        console.error('Export failed or response undefined');
-                    }
-                });
+                exportToExcel(item.t_data, item.tableId);
             };
 
             buttonContainer.appendChild(buttonElement);
@@ -99,5 +89,29 @@ document.addEventListener('DOMContentLoaded', async function () {
             groupContainer.appendChild(buttonContainer);
             tableDiv.appendChild(groupContainer);
         });
+    }
+
+    function exportToExcel(data, tableId) {
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+        const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `table_${tableId}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function s2ab(s) {
+        const buf = new ArrayBuffer(s.length);
+        const view = new Uint8Array(buf);
+        for (let i = 0; i < s.length; i++) {
+            view[i] = s.charCodeAt(i) & 0xFF;
+        }
+        return buf;
     }
 });
