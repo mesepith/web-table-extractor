@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const message_hint = document.getElementById("message");
+    const tableDiv = document.getElementById('table-container');
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         const response = await chrome.tabs.sendMessage(tab.id, { greeting: "helloKan" });
@@ -130,4 +131,66 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.error('Could not copy text: ', err);
         });
     }
+
+    /** Grid data start */
+
+    // Extract Data Button
+    const extractButton = document.createElement('button');
+    extractButton.textContent = 'Extract Data';
+    document.body.appendChild(extractButton);
+
+    extractButton.addEventListener('click', async () => {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        chrome.tabs.sendMessage(tab.id, { greeting: "extractGridData" }, response => {
+            if (response && response.content) {
+                const data = JSON.parse(response.content);
+                if (data.length > 0) {
+                    displayGridData(data);
+                    message_hint.style.display = 'none';
+                } else {
+                    message_hint.innerText = 'No data found on this page.';
+                }
+            } else {
+                message_hint.innerText = 'Failed to extract data.';
+            }
+        });
+    });
+
+    function displayGridData(data) {
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+
+        // Add table header if needed
+        const headerRow = document.createElement('tr');
+        if (data.length > 0) {
+            data[0].forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                th.style.border = '1px solid black';
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+        }
+
+        // Add data rows
+        data.forEach((row, index) => {
+            if (index === 0) return; // Skip header row if already added
+            const tr = document.createElement('tr');
+            row.forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell;
+                td.style.border = '1px solid black';
+                tr.appendChild(td);
+            });
+            table.appendChild(tr);
+        });
+
+        tableDiv.innerHTML = ''; // Clear previous content
+        tableDiv.appendChild(table);
+    }
+
+    /** Grid data start */
 });
+
+
