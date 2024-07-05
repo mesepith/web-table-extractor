@@ -38,13 +38,15 @@ th, td {
 
 button {
   padding: 8px 12px;
-  background-color: #0077cc;
-  color: #fff;
+  background-color: orange; /* Changed from #0077cc to orange */
+  color: #000;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  margin-right: 10px; /* Add space between buttons */
 }
 
 button:hover {
-  background-color: #005599;
+  background-color: #cc5200; /* Darker shade of orange for hover */
 }
+
