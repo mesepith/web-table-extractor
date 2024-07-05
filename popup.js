@@ -103,30 +103,36 @@ document.addEventListener('DOMContentLoaded', async function () {
         tableDiv.innerHTML = '';  // Clear previous tables if any
     
         list.forEach(item => {
-            const groupContainer = document.createElement('div');
-            groupContainer.className = 'table-group';
+            // Check if there is data in the table
+            if (!item.t_data.every(row => row.every(cell => cell.trim() === ''))) {
+                const groupContainer = document.createElement('div');
+                groupContainer.className = 'table-group';
     
-            const tableElement = document.createElement('table');
-            tableElement.id = item.tableId;
+                const tableElement = document.createElement('table');
+                tableElement.id = item.tableId;
     
-            // Generating table rows
-            item.t_data.forEach((rowData, index) => {
-                const rowElement = document.createElement('tr');
-                rowData.forEach(cellText => {
-                    const cellElement = document.createElement(index === 0 ? 'th' : 'td');
-                    cellElement.textContent = cellText;
-                    rowElement.appendChild(cellElement);
+                // Generating table rows
+                item.t_data.forEach((rowData, index) => {
+                    const rowElement = document.createElement('tr');
+                    rowData.forEach(cellText => {
+                        const cellElement = document.createElement(index === 0 ? 'th' : 'td');
+                        cellElement.textContent = cellText;
+                        rowElement.appendChild(cellElement);
+                    });
+                    tableElement.appendChild(rowElement);
                 });
-                tableElement.appendChild(rowElement);
-            });
     
-            groupContainer.appendChild(tableElement);
-            tableDiv.appendChild(groupContainer);
+                groupContainer.appendChild(tableElement);
+                tableDiv.appendChild(groupContainer);
     
-            // Buttons for each table
-            addTableControls(groupContainer, item.t_data, item.tableId);
+                // Buttons for each table
+                addTableControls(groupContainer, item.t_data, item.tableId);
+            } else {
+                console.log('No data in table ' + item.tableId + ', not displaying.');
+            }
         });
     }
+    
     
     function addTableControls(container, data, tableId) {
         const buttonContainer = document.createElement('div');
