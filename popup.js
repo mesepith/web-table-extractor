@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             };
 
             const exportButtonElement = document.createElement('button');
-            exportButtonElement.innerText = 'Export .xlsx';
+            exportButtonElement.innerText = 'Download.xlsx';
             exportButtonElement.onclick = function () {
                 exportToExcel(item.t_data, item.tableId);
             };
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
 
         const exportButton = document.createElement('button');
-        exportButton.textContent = 'Export .xlsx';
+        exportButton.textContent = 'Download.xlsx';
         exportButton.addEventListener('click', () => exportToExcel(data, tableId));
 
         const copyButton = document.createElement('button');
