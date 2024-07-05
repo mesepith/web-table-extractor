@@ -98,7 +98,62 @@ document.addEventListener('DOMContentLoaded', async function () {
             tableDiv.appendChild(groupContainer);
         });
     }
+    function initTable(list, maxWidth, columnWidth) {
+        const tableDiv = document.getElementById('table-container');
+        tableDiv.innerHTML = '';  // Clear previous tables if any
+    
+        list.forEach(item => {
+            const groupContainer = document.createElement('div');
+            groupContainer.className = 'table-group';
+    
+            const tableElement = document.createElement('table');
+            tableElement.id = item.tableId;
+    
+            // Generating table rows
+            item.t_data.forEach((rowData, index) => {
+                const rowElement = document.createElement('tr');
+                rowData.forEach(cellText => {
+                    const cellElement = document.createElement(index === 0 ? 'th' : 'td');
+                    cellElement.textContent = cellText;
+                    rowElement.appendChild(cellElement);
+                });
+                tableElement.appendChild(rowElement);
+            });
+    
+            groupContainer.appendChild(tableElement);
+            tableDiv.appendChild(groupContainer);
+    
+            // Buttons for each table
+            addTableControls(groupContainer, item.t_data, item.tableId);
+        });
+    }
+    
+    function addTableControls(container, data, tableId) {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'button-container';
 
+        const toggleButton = document.createElement('button');
+        toggleButton.textContent = 'Toggle Rows';
+        toggleButton.addEventListener('click', () => {
+            const rows = container.querySelectorAll('tr');
+            Array.from(rows).forEach((row, index) => {
+                if (index !== 0) row.style.display = row.style.display === 'none' ? '' : 'none';
+            });
+        });
+
+        const exportButton = document.createElement('button');
+        exportButton.textContent = 'Export .xlsx';
+        exportButton.addEventListener('click', () => exportToExcel(data, tableId));
+
+        const copyButton = document.createElement('button');
+        copyButton.textContent = 'Copy';
+        copyButton.addEventListener('click', () => copyToClipboard(data));
+
+        buttonContainer.append(toggleButton, exportButton, copyButton);
+        container.appendChild(buttonContainer);
+    }
+    
+    
     function exportToExcel(data, tableId) {
         const ws = XLSX.utils.aoa_to_sheet(data);
         const wb = XLSX.utils.book_new();
@@ -135,10 +190,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     /** Grid data start */
 
     // Extract Data Button
+    // Button to extract data
     const extractButton = document.createElement('button');
     extractButton.textContent = 'Extract Data';
-    document.body.appendChild(extractButton);
-
+    document.body.insertBefore(extractButton, document.body.firstChild); // Insert at the top
     extractButton.addEventListener('click', async () => {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         chrome.tabs.sendMessage(tab.id, { greeting: "extractGridData" }, response => {
@@ -157,38 +212,28 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     function displayGridData(data) {
+        const groupContainer = document.createElement('div');
+        groupContainer.className = 'table-group';
         const table = document.createElement('table');
         table.style.width = '100%';
         table.style.borderCollapse = 'collapse';
 
-        // Add table header if needed
-        const headerRow = document.createElement('tr');
-        if (data.length > 0) {
-            data[0].forEach(header => {
-                const th = document.createElement('th');
-                th.textContent = header;
-                th.style.border = '1px solid black';
-                headerRow.appendChild(th);
-            });
-            table.appendChild(headerRow);
-        }
-
-        // Add data rows
         data.forEach((row, index) => {
-            if (index === 0) return; // Skip header row if already added
             const tr = document.createElement('tr');
-            row.forEach(cell => {
-                const td = document.createElement('td');
-                td.textContent = cell;
+            row.forEach(cellText => {
+                const td = document.createElement(index === 0 ? 'th' : 'td');
+                td.textContent = cellText;
                 td.style.border = '1px solid black';
                 tr.appendChild(td);
             });
             table.appendChild(tr);
         });
 
-        tableDiv.innerHTML = ''; // Clear previous content
-        tableDiv.appendChild(table);
+        groupContainer.appendChild(table);
+        addTableControls(groupContainer, data, 'extractedData');
+        tableDiv.appendChild(groupContainer);
     }
+    
 
     /** Grid data start */
 });

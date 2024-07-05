@@ -11,7 +11,8 @@ h1 {
 }
 
 #table-container {
-  margin-top: 20px;
+  margin-bottom: 40px; /* Extra space for footer */
+  overflow: auto; /* Enable scrolling if necessary */
 }
 
 .table-group {
@@ -33,6 +34,7 @@ th, td {
 }
 
 .button-container {
+  text-align: center;
   margin-top: 10px;
 }
 
@@ -51,11 +53,13 @@ button:hover {
 }
 
 .footer {
-  position: absolute;
-  bottom: 10px;
-  width: 100%;
+  position: fixed;
   text-align: center;
-  font-size: 12px;
+  bottom: 0;
+  width: 100%;
+  background: #f2f2f2; /* Match body background or as needed */
+  padding: 1px 0;
+  box-shadow: 0 -1px 5px rgba(0,0,0,0.1); /* Optional */
 }
 
 .footer a {
