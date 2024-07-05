@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const tableDiv = document.getElementById('table-container');
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        const response = await chrome.tabs.sendMessage(tab.id, { greeting: "helloKan" });
+        const response = await chrome.tabs.sendMessage(tab.id, { greeting: "zahiralamFetch" });
         console.log("Response from content script:", response); // Add logging for debugging
         if (response.content === "") {
             message_hint.innerText = "No <table> found on this page.";

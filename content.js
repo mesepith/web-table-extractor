@@ -1,6 +1,6 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('request.greeting : '+ request.greeting);
-    if (request.greeting === "helloKan") {
+    if (request.greeting === "zahiralamFetch") {
         let tables = document.getElementsByTagName('table');
         let tableData = [];
         for (let i = 0; i < tables.length; i++) {
