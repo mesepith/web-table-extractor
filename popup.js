@@ -83,8 +83,15 @@ document.addEventListener('DOMContentLoaded', async function () {
                 exportToExcel(item.t_data, item.tableId);
             };
 
+            const copyButtonElement = document.createElement('button');
+            copyButtonElement.innerText = 'Copy';
+            copyButtonElement.onclick = function () {
+                copyToClipboard(item.t_data);
+            };
+
             buttonContainer.appendChild(buttonElement);
             buttonContainer.appendChild(exportButtonElement);
+            buttonContainer.appendChild(copyButtonElement);
             groupContainer.appendChild(tableElement);
             groupContainer.appendChild(buttonContainer);
             tableDiv.appendChild(groupContainer);
@@ -113,5 +120,14 @@ document.addEventListener('DOMContentLoaded', async function () {
             view[i] = s.charCodeAt(i) & 0xFF;
         }
         return buf;
+    }
+
+    function copyToClipboard(data) {
+        const textToCopy = data.map(row => row.join('\t')).join('\n');
+        navigator.clipboard.writeText(textToCopy).then(function() {
+            console.log('Copied to clipboard successfully.');
+        }, function(err) {
+            console.error('Could not copy text: ', err);
+        });
     }
 });
